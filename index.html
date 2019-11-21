@@ -1,3 +1,268 @@
-<h1>
-    hello P0W!
-</h1>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>Stack Visuals</title>
+    <script src="//www.youtube.com/player_api"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+
+    <style>
+        #graph1 path {
+            stroke: green;
+            stroke-width: 1px;
+            fill: none;
+        }
+
+        #graph3 path {
+            stroke: darkcyan;
+            stroke-width: 0.9px;
+            fill: none;
+        }
+
+        #graph3 .dot {
+
+            stroke-width: 0.9px;
+            fill: red;
+        }
+
+        #graph1 svg {
+            margin: 8px;
+            opacity: 0.8;
+            border-style: groove;
+            border-radius: 10px;
+        }
+
+        #graph2 svg {
+            margin: 8px;
+            opacity: 0.8;
+            border-style: groove;
+            border-radius: 10px;
+        }
+
+        #graph3 svg {
+            margin: 8px;
+            opacity: 0.8;
+            border-style: groove;
+            border-radius: 10px;
+        }
+
+        .topContainer {
+            border-style: groove;
+            border-color: steelblue;
+            border-radius: 15px;
+            margin-left: 5px;
+            margin-top: 5px;
+            max-width: 450px;
+            border-width: 1px;
+            ;
+        }
+
+        #worldMap {
+            border-radius: 15px;
+            border-style: groove;
+            border-color: azure;
+            width: 440px;
+        }
+
+        #worldMap path {
+            background-color: steelblue;
+        }
+
+        #player {
+            opacity: 0.75;
+            border-radius: 15px;
+        }
+    </style>
+
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+
+</head>
+
+<body>
+    <div class="topContainer">
+        <div class="row">
+            <div class="col-md">
+                <div id="graph1"></div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-3">
+                <div id="graph3"></div>
+            </div>
+            <div class="col-md-3">
+                <div id="player"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div id="worldMap"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">
+                <div id="graph2"></div>
+            </div>
+        </div>
+
+    </div>
+</body>
+<script>
+    var player;
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '150',
+            width: '250',
+            videoId: 'K2c8T5gk5Qo'
+        });
+    }
+    $(document).on('mouseover', '#player', function () {
+        //player.setVolume(0);
+        player.playVideo();
+    });
+    $(document).on('mouseout', '#player', function () {
+        player.pauseVideo();
+    });
+
+</script>
+
+<script>
+    var DATA_COUNT = 100;
+
+    var DATA_MAX = 20;
+    var DATA_MIN = -20;
+    var WIDTH = 400;
+    var HEIGHT = 50;
+    var BAR_WIDTH = (WIDTH - DATA_COUNT) / DATA_COUNT;
+
+    var data = d3.range(DATA_COUNT)
+        .map(d => DATA_MIN + (DATA_MAX - DATA_MIN) * Math.random());
+
+    var graph = d3.select("#graph1")
+        .append("svg")
+        .attr("width", WIDTH)
+        .attr("height", HEIGHT);
+
+
+    var graph2 = d3.select("#graph2")
+        .append("svg")
+        .attr("width", WIDTH)
+        .attr("height", HEIGHT);
+
+    var graph3 = d3.select("#graph3")
+        .append("svg")
+        .attr("width", WIDTH)
+        .attr("height", HEIGHT);
+
+
+    var x = d3.scaleLinear()
+        .domain([0, DATA_COUNT])
+        .range([0, WIDTH]);
+    var y = d3.scaleLinear()
+        .domain([DATA_MIN, DATA_MAX + 15])
+        .range([0, HEIGHT]);
+    var line = d3.line()
+        .x(function (d, i) {
+            return x(i);
+        })
+        .y(function (d) {
+            return y(d);
+        })
+        .curve(d3.curveMonotoneX)
+
+    graph.append("path")
+        .attr("d", line(data));
+
+    var data2 = d3.range(DATA_COUNT)
+        .map(d => DATA_MIN + (DATA_MAX - DATA_MIN) * Math.random());
+    graph3.append("path")
+        .attr("d", line(data2));
+
+    graph3.selectAll(".dot")
+        .data(data2)
+        .enter().append("circle")
+        .attr("class", "dot")
+        .attr("cx", function (d, i) {
+            return x(i)
+        })
+        .attr("cy", function (d) {
+            return y(d)
+        })
+        .attr("r", 2.5);
+
+
+    graph2.selectAll('.bar').data(data)
+        .enter()
+        .append('rect')
+        .attr('class', 'bar')
+        .attr('x', (d, i) => x(i))
+        .attr('y', d => d > 0 ? y(d) : y(0))
+        .attr('width', BAR_WIDTH)
+        .attr('height', d => Math.abs(y(d) - y(0)))
+        .attr('fill', d => d > 0 ? 'steelblue' : 'tomato');
+
+
+    function addd3Map(divID, width, height) {
+
+        // The svg
+        var svg = d3.select("#worldMap")
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+        width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        // Map and projection
+        var path = d3.geoPath();
+        var projection = d3.geoMercator()
+            .scale(70)
+            .center([0, 0])
+            .translate([width / 2.5, height / 1.5]);
+
+        // Data and color scale
+        var data = d3.map();
+        var colorScale = d3.scaleThreshold()
+            .domain([1e5, 1e6, 1e7, 3e7, 1e8, 5e8])
+            .range(d3.schemeGreens[7]);
+
+        // Load external data and boot
+        d3.queue()
+            .defer(d3.json, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
+            .defer(d3.csv, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world_population.csv", function (d) {
+                data.set(d.code, +d.pop);
+            })
+            .await(ready);
+
+        function ready(error, topo) {
+            svg.append("g")
+                .selectAll("path")
+                .data(topo.features)
+                .enter()
+                .append("path")
+                .attr("d", d3.geoPath()
+                    .projection(projection)
+                )
+                .attr("fill", function (d) {
+                    d.total = data.get(d.id) || 0;
+                    return colorScale(d.total);
+                });
+        }
+
+    }
+
+    addd3Map('worldMap', 500, 200);
+
+
+</script>
+
+</html>
